@@ -3,7 +3,7 @@
 3. pip install -r requirements.txt
 4. python main.py
  
-1. Introduction
+1 Introduction
 1.1 Purpose
 
 The Parent Node Finder is a web-based application that identifies and displays the hierarchical relationships between devices based on their MAC IDs. It simplifies analyzing device connections and parent–child mappings in networks such as IoT or mesh-based systems.
