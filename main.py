@@ -1,6 +1,7 @@
 from flask import Flask, render_template_string, request
 import re
 from io import TextIOWrapper
+import os
 
 app = Flask(__name__)
 
@@ -26,6 +27,16 @@ body {
 }
 h2 {
   text-align: center;
+  color: #007bff;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.docsLink {
+  text-decoration: none;
+  font-size: 14px;
   color: #007bff;
 }
 input[type="file"], input[type="text"], button {
@@ -125,7 +136,10 @@ function sortTable() {
 </head>
 <body>
   <div class="container">
-    <h2>Parent Node Finder</h2>
+    <div class="header">
+      <h2>Parent Node Finder</h2>
+      <a href="/docs" class="docsLink">Documentation</a>
+    </div>
     <input type="file" id="fileInput"><br>
     <input type="text" id="mac1" placeholder="Enter Root 1 (MAC)"><br>
     <input type="text" id="mac2" placeholder="Enter Root 2 (MAC)"><br>
@@ -200,6 +214,53 @@ def process_file():
     </table>
     """
     return table_html
+
+
+@app.route('/docs')
+def docs():
+    """Serve the project's docs/README.md at /docs.
+    If the `markdown` package is available it will be rendered to HTML; otherwise
+    the raw markdown is shown inside a <pre> block.
+    """
+    docs_path = os.path.join(os.path.dirname(__file__), 'README.md')
+    if not os.path.exists(docs_path):
+        return "<p style='color:red;'>Docs not found.</p>", 404
+
+    try:
+        # Prefer to render Markdown if the module is installed
+        import markdown
+        with open(docs_path, 'r', encoding='utf-8') as f:
+            md = f.read()
+        html = markdown.markdown(md, extensions=['fenced_code', 'tables'])
+        page = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Docs</title>
+  <style>body{{font-family:Arial, Helvetica, sans-serif;margin:40px}}.container{{max-width:900px;margin:auto;background:white;padding:20px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}}</style>
+</head>
+<body>
+  <div class='container'>{html}</div>
+</body>
+</html>"""
+        return page
+    except Exception:
+        # Fallback: show raw markdown inside a pre block
+        with open(docs_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        escaped = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        page = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Docs</title>
+  <style>body{{font-family:Arial, Helvetica, sans-serif;margin:40px}}.container{{max-width:900px;margin:auto;background:white;padding:20px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}}</style>
+</head>
+<body>
+  <div class='container'><pre>{escaped}</pre></div>
+</body>
+</html>"""
+        return page
 
 if __name__ == '__main__':
     app.run(debug=True)
